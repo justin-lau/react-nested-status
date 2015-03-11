@@ -34,7 +34,7 @@ var App = React.createClass({
   render: function () {
     // Use "My Web App" if no child overrides this
     return (
-      <NestedStatus code=200>
+      <NestedStatus code={200}>
         <this.props.activeRouteHandler />
       </NestedStatus>
     );
@@ -45,7 +45,7 @@ var HomePage = React.createClass({
   render: function () {
     // Use "Home" while this component is mounted
     return (
-      <NestedStatus code=200>
+      <NestedStatus code={200}>
         <h1>Home, sweet home.</h1>
       </NestedStatus>
     );
@@ -58,7 +58,7 @@ var ErrorPage = React.createClass({
   render: function () {
     // Update using value from state while this component is mounted
     return (
-      <NestedStatus code=404>
+      <NestedStatus code={404}>
         <div>
           <h1>Four-oh-four</h1>
           <p>Page not found.</p>
@@ -74,6 +74,19 @@ var ErrorPage = React.createClass({
 Call `NestedStatus.rewind()` after rendering components to string to retrieve the status code given to the innermost `NestedStatus`. You can then use this to set your Express (or other web server) status code.
 
 Because this component keeps track of mounted instances, **you have to make sure to call `rewind` on server**, or you'll get a memory leak.
+
+### Example
+
+```javascript
+var markup = React.renderToString(React.createFactory(Handler)());
+var status = NestedStatus.rewind();
+var html = React.renderToStaticMarkup(htmlComponent({
+    markup: markup
+}));
+
+// Express
+res.status(status).send('<!DOCTYPE html>' + html);
+```
 
 ## Thank you
 
