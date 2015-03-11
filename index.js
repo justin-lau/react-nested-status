@@ -3,41 +3,36 @@
 var React = require('react'),
     createSideEffect = require('react-side-effect');
 
-var _serverTitle = null;
+var _serverStatus = 200;
 
-function getTitleFromPropsList(propsList) {
+function getStatusFromPropsList(propsList) {
   var innermostProps = propsList[propsList.length - 1];
   if (innermostProps) {
-    return innermostProps.title;
+    return innermostProps.code;
   }
 }
 
-var DocumentTitle = createSideEffect(function handleChange(propsList) {
-  var title = getTitleFromPropsList(propsList);
-
-  if (typeof document !== 'undefined') {
-    document.title = title || '';
-  } else {
-    _serverTitle = title || null;
-  }
+var NestedStatus = createSideEffect(function handleChange(propsList) {
+  var status = getStatusFromPropsList(propsList);
+  _serverStatus = status || 200;
 }, {
-  displayName: 'DocumentTitle',
+  displayName: 'NestedStatus',
 
   propTypes: {
-    title: React.PropTypes.string.isRequired
+    code: React.PropTypes.number.isRequired
   },
 
   statics: {
     peek: function () {
-      return _serverTitle;
+      return _serverStatus;
     },
 
     rewind: function () {
-      var title = _serverTitle;
+      var status = _serverStatus;
       this.dispose();
-      return title;
+      return status;
     }
   }
 });
 
-module.exports = DocumentTitle;
+module.exports = NestedStatus;

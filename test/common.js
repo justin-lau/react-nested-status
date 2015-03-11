@@ -3,18 +3,18 @@
 'use strict';
 var expect = require('expect.js'),
     React = require('react'),
-    DocumentTitle = require('../');
+    NestedStatus = require('../');
 
-describe('DocumentTitle', function () {
+describe('NestedStatus', function () {
   it('has a displayName', function () {
-    var el = React.createElement(DocumentTitle);
+    var el = React.createElement(NestedStatus);
     expect(el.type.displayName).to.be.a('string');
     expect(el.type.displayName).not.to.be.empty();
   });
   it('hides itself from the DOM', function () {
     var Component = React.createClass({
       render: function () {
-        return React.createElement(DocumentTitle, {title: 'irrelevant'},
+        return React.createElement(NestedStatus, {code: 2727},
           React.createElement('div', null, 'hello')
         );
       }
@@ -25,7 +25,7 @@ describe('DocumentTitle', function () {
   it('throws an error if it has multiple children', function (done) {
     var Component = React.createClass({
       render: function () {
-        return React.createElement(DocumentTitle, {title: 'irrelevant'},
+        return React.createElement(NestedStatus, {code: 2727},
           React.createElement('div', null, 'hello'),
           React.createElement('div', null, 'world')
         );
@@ -49,7 +49,7 @@ describe('DocumentTitle', function () {
     });
     var Component2 = React.createClass({
       render: function () {
-        return React.createElement(DocumentTitle, {title: 'irrelevant'},
+        return React.createElement(NestedStatus, {code: 2727},
           React.createElement('div', null,
             React.createElement('div', null, 'a'),
             React.createElement('div', null, 'b'),
@@ -74,33 +74,33 @@ describe('DocumentTitle', function () {
   });
 });
 
-describe('DocumentTitle.rewind', function () {
+describe('NestedStatus.rewind', function () {
   it('clears the mounted instances', function () {
     React.renderToStaticMarkup(
-      React.createElement(DocumentTitle, {title: 'a'},
-        React.createElement(DocumentTitle, {title: 'b'}, React.createElement(DocumentTitle, {title: 'c'}))
+      React.createElement(NestedStatus, {code: 201},
+        React.createElement(NestedStatus, {code: 202}, React.createElement(NestedStatus, {code: 203}))
       )
     );
-    expect(DocumentTitle.peek()).to.equal('c');
-    DocumentTitle.rewind();
-    expect(DocumentTitle.peek()).to.equal(null);
+    expect(NestedStatus.peek()).to.equal(203);
+    NestedStatus.rewind();
+    expect(NestedStatus.peek()).to.equal(200);
   });
-  it('returns the latest document title', function () {
-    var title = 'cheese';
+  it('returns the latest status code', function () {
+    var code = 200;
     React.renderToStaticMarkup(
-      React.createElement(DocumentTitle, {title: 'a'},
-        React.createElement(DocumentTitle, {title: 'b'}, React.createElement(DocumentTitle, {title: title}))
+      React.createElement(NestedStatus, {code: 404},
+        React.createElement(NestedStatus, {code: 500}, React.createElement(NestedStatus, {code: code}))
       )
     );
-    expect(DocumentTitle.rewind()).to.equal(title);
+    expect(NestedStatus.rewind()).to.equal(code);
   });
-  it('returns nothing if no mounted instances exist', function () {
+  it('returns 200 if no mounted instances exist', function () {
     React.renderToStaticMarkup(
-      React.createElement(DocumentTitle, {title: 'a'},
-        React.createElement(DocumentTitle, {title: 'b'}, React.createElement(DocumentTitle, {title: 'c'}))
+      React.createElement(NestedStatus, {code: 500},
+        React.createElement(NestedStatus, {code: 404}, React.createElement(NestedStatus, {code: 301}))
       )
     );
-    DocumentTitle.rewind();
-    expect(DocumentTitle.peek()).to.equal(null);
+    NestedStatus.rewind();
+    expect(NestedStatus.peek()).to.equal(200);
   });
 });
