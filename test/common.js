@@ -3,40 +3,24 @@
 'use strict';
 var expect = require('expect.js'),
     React = require('react'),
-    NestedStatus = require('../');
+    NestedRedirect = require('../');
 
-describe('NestedStatus', function () {
+describe('NestedRedirect', function () {
   it('has a displayName', function () {
-    var el = React.createElement(NestedStatus);
+    var el = React.createElement(NestedRedirect);
     expect(el.type.displayName).to.be.a('string');
     expect(el.type.displayName).not.to.be.empty();
   });
   it('hides itself from the DOM', function () {
     var Component = React.createClass({
       render: function () {
-        return React.createElement(NestedStatus, {code: 2727},
+        return React.createElement(NestedRedirect, {code: 2727},
           React.createElement('div', null, 'hello')
         );
       }
     });
     var markup = React.renderToStaticMarkup(React.createElement(Component));
     expect(markup).to.equal('<div>hello</div>');
-  });
-  it('throws an error if it has multiple children', function (done) {
-    var Component = React.createClass({
-      render: function () {
-        return React.createElement(NestedStatus, {code: 2727},
-          React.createElement('div', null, 'hello'),
-          React.createElement('div', null, 'world')
-        );
-      }
-    });
-    expect(function () {
-      React.renderToStaticMarkup(React.createElement(Component));
-    }).to.throwException(function (e) {
-      expect(e.message).to.match(/^Invariant Violation:/);
-      done();
-    });
   });
   it('works with complex children', function () {
     var Component1 = React.createClass({
@@ -49,7 +33,7 @@ describe('NestedStatus', function () {
     });
     var Component2 = React.createClass({
       render: function () {
-        return React.createElement(NestedStatus, {code: 2727},
+        return React.createElement(NestedRedirect, {code: 301, href: 'https://www.google.com'},
           React.createElement('div', null,
             React.createElement('div', null, 'a'),
             React.createElement('div', null, 'b'),
@@ -74,33 +58,46 @@ describe('NestedStatus', function () {
   });
 });
 
-describe('NestedStatus.rewind', function () {
+describe('NestedRedirect.rewind', function () {
   it('clears the mounted instances', function () {
     React.renderToStaticMarkup(
-      React.createElement(NestedStatus, {code: 201},
-        React.createElement(NestedStatus, {code: 202}, React.createElement(NestedStatus, {code: 203}))
+      React.createElement(NestedRedirect, {code: 301, href: 'https://www.google.com'},
+        React.createElement(
+          NestedRedirect,
+          {code: 302, href: 'https://www.yahoo.com'},
+          React.createElement(NestedRedirect, {code: 301, href: 'https://www.bing.com'}
+        ))
       )
     );
-    expect(NestedStatus.peek()).to.equal(203);
-    NestedStatus.rewind();
-    expect(NestedStatus.peek()).to.equal(200);
+    var peekedStatus = NestedRedirect.peek();
+    expect(peekedStatus).to.have.property('isRedirect', true);
+    expect(peekedStatus).to.have.property('code', 301);
+    expect(peekedStatus).to.have.property('href', 'https://www.bing.com');
+    NestedRedirect.rewind();
+    expect(NestedRedirect.peek()).to.have.property('isRedirect', false);
   });
   it('returns the latest status code', function () {
-    var code = 200;
     React.renderToStaticMarkup(
-      React.createElement(NestedStatus, {code: 404},
-        React.createElement(NestedStatus, {code: 500}, React.createElement(NestedStatus, {code: code}))
+      React.createElement(NestedRedirect, {code: 302, href: 'https://www.google.com'},
+        React.createElement(NestedRedirect, {code: 301, href: 'https://www.bing.com'},
+          React.createElement(NestedRedirect, {code: 302, href: 'https://www.yahoo.com'}
+        ))
       )
     );
-    expect(NestedStatus.rewind()).to.equal(code);
+    var peekedStatus = NestedRedirect.peek();
+    expect(peekedStatus).to.have.property('isRedirect', true);
+    expect(peekedStatus).to.have.property('code', 302);
+    expect(peekedStatus).to.have.property('href', 'https://www.yahoo.com');
   });
-  it('returns 200 if no mounted instances exist', function () {
+  it('returns `isRedirect: false` if no mounted instances exist', function () {
     React.renderToStaticMarkup(
-      React.createElement(NestedStatus, {code: 500},
-        React.createElement(NestedStatus, {code: 404}, React.createElement(NestedStatus, {code: 301}))
+      React.createElement(NestedRedirect, {code: 301, href: 'https://www.google.com'},
+        React.createElement(NestedRedirect, {code: 302, href: 'https://www.yahoo.com'},
+          React.createElement(NestedRedirect, {code: 301, href: 'https://www.bing.com'}
+        ))
       )
     );
-    NestedStatus.rewind();
-    expect(NestedStatus.peek()).to.equal(200);
+    NestedRedirect.rewind();
+    expect(NestedRedirect.peek()).to.have.property('isRedirect', false);
   });
 });
